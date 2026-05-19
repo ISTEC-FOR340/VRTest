@@ -3,21 +3,84 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Visor 360 VR con A-Frame</title>
+  <title>Visor 360 VR con A-Frame y Hotspots</title>
   
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+
+  <script>
+    AFRAME.registerComponent('teleport', {
+      schema: {
+        target: {type: 'string'}, // ID de la nueva imagen de fondo
+        showGroup: {type: 'string'}, // Grupo de hotspots que se debe mostrar
+        hideGroup: {type: 'string'}  // Grupo de hotspots que se debe ocultar
+      },
+      init: function () {
+        var el = this.el;
+        var data = this.data;
+        
+        el.addEventListener('click', function () {
+          // 1. Cambiar el fondo del cielo
+          document.querySelector('a-sky').setAttribute('src', data.target);
+          
+          // 2. Ocultar el grupo actual de hotspots
+          document.querySelector(data.hideGroup).setAttribute('visible', 'false');
+          document.querySelector(data.hideGroup).setAttribute('scale', '0 0 0'); // Evita que se pueda hacer click estando invisible
+          
+          // 3. Mostrar el nuevo grupo de hotspots
+          document.querySelector(data.showGroup).setAttribute('visible', 'true');
+          document.querySelector(data.showGroup).setAttribute('scale', '1 1 1');
+        });
+      }
+    });
+  </script>
 </head>
 <body style="margin: 0; overflow: hidden;">
 
   <a-scene>
     
     <a-assets>
-      <img id="panorama" src="https://images.unsplash.com/photo-1557971370-e7298ee473fb?q=80&w=1000" crossorigin="anonymous">
+      <img id="home" src="https://images.unsplash.com/photo-1557971370-e7298ee473fb?q=80&w=1000" crossorigin="anonymous">
+      <img id="ambiente1" src="https://images.unsplash.com/photo-1544551763-46a013bb70d5?q=80&w=1000" crossorigin="anonymous">
+      <img id="ambiente2" src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?q=80&w=1000" crossorigin="anonymous">
     </a-assets>
 
-    <a-sky src="#panorama" rotation="0 -90 0"></a-sky>
+    <a-sky src="#home" rotation="0 -90 0"></a-sky>
 
-    <a-entity camera look-controls></a-entity>
+    <a-entity id="group-home" visible="true" scale="1 1 1">
+      <a-sphere position="-3 1 -4" radius="0.4" color="#FF5733"
+                teleport="target: #ambiente1; hideGroup: #group-home; showGroup: #group-ambiente1">
+        <a-text value="Ir a Playa" align="center" position="0 0.7 0" scale="1.5 1.5 1.5" look-at="[camera]"></a-text>
+      </a-sphere>
+
+      <a-sphere position="3 1 -4" radius="0.4" color="#33FF57"
+                teleport="target: #ambiente2; hideGroup: #group-home; showGroup: #group-ambiente2">
+        <a-text value="Ir a Montana" align="center" position="0 0.7 0" scale="1.5 1.5 1.5" look-at="[camera]"></a-text>
+      </a-sphere>
+    </a-entity>
+
+    <a-entity id="group-ambiente1" visible="false" scale="0 0 0">
+      <a-sphere position="0 1 -5" radius="0.4" color="#3357FF"
+                teleport="target: #home; hideGroup: #group-ambiente1; showGroup: #group-home">
+        <a-text value="Volver al Home" align="center" position="0 0.7 0" scale="1.5 1.5 1.5"></a-text>
+      </a-sphere>
+    </a-entity>
+
+    <a-entity id="group-ambiente2" visible="false" scale="0 0 0">
+      <a-sphere position="0 1 -5" radius="0.4" color="#3357FF"
+                teleport="target: #home; hideGroup: #group-ambiente2; showGroup: #group-home">
+        <a-text value="Volver al Home" align="center" position="0 0.7 0" scale="1.5 1.5 1.5"></a-text>
+      </a-sphere>
+    </a-entity>
+
+    <a-entity camera look-controls>
+      <a-cursor id="cursor"
+                animation__click="property: scale; startEvents: click; easing: easeInCubic; durability: 150; from: 0.1 0.1 0.1; to: 1 1 1"
+                animation__fusing="property: scale; startEvents: fusing; easing: easeInCubic; durability: 1500; from: 1 1 1; to: 0.1 0.1 0.1"
+                event-set__mouseenter="_event: mouseenter; color: springgreen"
+                event-set__mouseleave="_event: mouseleave; color: black"
+                raycaster="objects: a-sphere">
+      </a-cursor>
+    </a-entity>
 
   </scene>
 
